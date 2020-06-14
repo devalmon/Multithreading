@@ -7,8 +7,11 @@
 //
 
 #import "SceneDelegate.h"
+#import "ViewController.h"
 
 @interface SceneDelegate ()
+
+@property (strong, nonatomic) NSMutableArray *array;
 
 @end
 
@@ -19,6 +22,84 @@
     // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
     // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
     // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
+    self.window = [[UIWindow alloc] initWithWindowScene:(UIWindowScene *) scene];
+    ViewController *rootViewController = ViewController.new;
+    self.window.rootViewController = rootViewController;
+    [self.window makeKeyAndVisible];
+    
+    
+//    [self performSelectorInBackground:@selector(testThread) withObject:nil];
+//    for (int i = 0; i < 10; i++) {
+//        NSThread *thread = [[NSThread alloc] initWithTarget:self selector:@selector(testThread) object:nil];
+//        thread.name = [NSString stringWithFormat:@"thread #%d", i + 1];
+//        [thread start];
+//    }
+    
+    NSThread *thread1 = [[NSThread alloc] initWithTarget:self selector:@selector(addStringToArray:) object:@"x"];
+    NSThread *thread2 = [[NSThread alloc] initWithTarget:self selector:@selector(addStringToArray:) object:@"0"];
+    thread1.name = @"thread 1";
+    thread2.name = @"thread 2";
+    [thread1 start];
+    [thread2 start];
+    
+    
+    self.array = [NSMutableArray array];
+    
+    [self performSelector:@selector(printArray) withObject:nil afterDelay:1];
+     
+    /*
+    self.array = [NSMutableArray array];
+    
+    dispatch_queue_t queue = dispatch_queue_create("my_queue", DISPATCH_QUEUE_PRIORITY_DEFAULT);
+    __weak id weakSelf = self;
+    
+    dispatch_async(queue, ^{
+        [weakSelf addStringToArray:@"x"];
+    });
+    dispatch_async(queue, ^{
+        [weakSelf addStringToArray:@"0"];
+    });
+    
+    [self performSelector:@selector(printArray) withObject:nil afterDelay:3];
+     */
+}
+
+- (void)testThread {
+    @autoreleasepool {
+        double startTime = CACurrentMediaTime();
+        NSLog(@"%@ started", [[NSThread currentThread] name]);
+        
+            for (int i = 0; i < 20; i++) {
+        }
+        NSLog(@"%@ finished in %f", [[NSThread currentThread] name], CACurrentMediaTime() - startTime);
+
+    }
+}
+
+- (void)addStringToArray: (NSString *) string {
+    @autoreleasepool {
+        
+        double startTime = CACurrentMediaTime();
+        NSLog(@"%@ started", [[NSThread currentThread] name]);
+        
+//        @synchronized (self) {
+            NSLog(@"%@ calcus started", [[NSThread currentThread] name]);
+
+            for (int i = 0; i < 2000; i++) {
+                [self.array addObject:string];
+            }
+            
+            NSLog(@"%@ calcus ended", [[NSThread currentThread] name]);
+
+//        }
+        
+        NSLog(@"%@ finished in %f", [[NSThread currentThread] name], CACurrentMediaTime() - startTime);
+
+    }
+}
+
+- (void)printArray {
+    NSLog(@"%@", self.array);
 }
 
 
